@@ -1356,7 +1356,7 @@ async function processJsFiles(jsFiles) {
 (async () => {
     try {
         // Generate realistic-looking dead code snippets
-        const deadCodeSnippets = generateDeadCodeSnippets();
+        // const deadCodeSnippets = generateDeadCodeSnippets();
 
         if (!argMap.token || !argMap.account || !argMap.meta) {
             console.log("[+] Provide Azure storage account information:");
