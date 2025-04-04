@@ -1,4 +1,5 @@
-const crypto = require('node:crypto');
+import crypto from 'node:crypto';
+import util from 'node:util';
 
 function generateAESKey() {
   return {
@@ -43,7 +44,7 @@ function aesGcmEncrypt(data, key, iv, aad = null) {
       authTag
     };
   } catch (error) {
-    throw new Error(`Encryption failed: ${error.message}`);
+    throw error;
   }
 }
 
@@ -72,7 +73,7 @@ function aesGcmDecrypt(encryptedData, key, iv, authTag, aad = null) {
 
     return decrypted;
   } catch (error) {
-    throw new Error(`Decryption failed: ${error.message}`);
+    throw error;
   }
 }
 
@@ -133,7 +134,9 @@ function chaChaPolyEncrypt(data, key, nonce, aad = null) {
     });
 
     if (aad) {
-      cipher.setAAD(Buffer.isBuffer(aad) ? aad : Buffer.from(aad));
+      cipher.setAAD(Buffer.isBuffer(aad) ? aad : Buffer.from(aad), {
+        plaintextLength: dataBuffer.length
+      });
     }
 
     const ciphertext = Buffer.concat([cipher.update(dataBuffer), cipher.final()]);
@@ -144,7 +147,7 @@ function chaChaPolyEncrypt(data, key, nonce, aad = null) {
       authTag
     };
   } catch (error) {
-    throw new Error(`ChaCha20-Poly1305 encryption failed: ${error.message}`);
+    throw error;
   }
 }
 
@@ -161,12 +164,14 @@ function chaChaPolyDecrypt(ciphertext, key, nonce, authTag, aad = null) {
     decipher.setAuthTag(authTag);
 
     if (aad) {
-      decipher.setAAD(Buffer.isBuffer(aad) ? aad : Buffer.from(aad));
+      decipher.setAAD(Buffer.isBuffer(aad) ? aad : Buffer.from(aad), {
+        plaintextLength: ciphertext.length
+      });
     }
 
     return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   } catch (error) {
-    throw new Error(`ChaCha20-Poly1305 decryption failed: ${error.message}`);
+    throw error;
   }
 }
 
@@ -190,31 +195,27 @@ function parseEncryptedData(data, ivLength = 12, tagLength = 16) {
   return { iv, authTag, ciphertext };
 }
 
-// Helper for password-based key derivation
-async function deriveKey(password, salt = crypto.randomBytes(16), iterations = 100000, keyLength = 32) {
-  return new Promise((resolve, reject) => {
-    crypto.pbkdf2(password, salt, iterations, keyLength, 'sha256', (err, key) => {
-      if (err) reject(err);
-      else resolve({ key, salt });
-    });
-  });
-}
+const pbkdf2Async = util.promisify(crypto.pbkdf2);
 
+async function deriveKey(password, salt = crypto.randomBytes(16), iterations = 100000, keyLength = 32) {
+  try {
+    const key = await pbkdf2Async(password, salt, iterations, keyLength, 'sha256');
+    return { key, salt };
+  } catch (error) {
+    throw new Error(`Key derivation failed: ${error.message}`);
+  }
+}
 module.exports = {
+  aesDecrypt,
+  aesEncrypt,
+  aesGcmDecrypt,
+  aesGcmEncrypt,
+  chaChaPolyDecrypt,
+  chaChaPolyEncrypt,
+  deriveKey,
+  formatEncryptedData,
   generateAESKey,
   generateChaChaKey,
-  deriveKey,
-
-  aesEncrypt,
-  aesDecrypt,
-
-  aesGcmEncrypt,
-  aesGcmDecrypt,
-
-  chaChaPolyEncrypt,
-  chaChaPolyDecrypt,
-
   generateUUID,
-  formatEncryptedData,
   parseEncryptedData
-};
+}; parseEncryptedData
