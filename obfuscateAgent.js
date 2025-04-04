@@ -169,11 +169,10 @@ function fakerJsData() {
     catch (error) {
         if (error.code === 'MODULE_NOT_FOUND') {
             console.warn("'@faker-js/faker' not found, using pre-defined pool.");
-            hasExternalObfuscator = false;
         } else {
             console.error("Error generating faker data:", error);
-            return [];
         }
+        return [];
     }
 }
 
