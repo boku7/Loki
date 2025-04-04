@@ -218,4 +218,4 @@ module.exports = {
   generateChaChaKey,
   generateUUID,
   parseEncryptedData
-}; parseEncryptedData
+};
