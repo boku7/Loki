@@ -13,14 +13,13 @@ Stage 1 C2 for backdooring Electron applications to bypass application controls.
 | [Shawn Jones](https://x.com/anthemtotheego) | Assembly Execution Code | 
 | [Simon Exley](https://www.linkedin.com/in/simon-exley-355816194/) | Video Creator |
 | [Clinton Elves](https://www.linkedin.com/in/clinton-elves-180ba0148/) | Video Creator |
-| [John Hammond](https://x.com/_JohnHammond) | Video Creator & Vulnerable App Discovery |
+| [John Hammond](https://x.com/_JohnHammond) | Video Creator |
 
 ## Videos
 Check out [John Hammonds](https://x.com/_JohnHammond) video on backdooring the Cursor AI application with Loki C2! 🎩       
-In the video he walks through discovering a new vulnerable Electron application, backdooring it with Loki C2, getting setup with the client GUI, and we even came up with two ways to keep the app running persistently in the background 🪄 -- Cursor runs normally from the end users perspective! 🥷      
+- In the video he walks through discovering a new vulnerable Electron application, backdooring it with Loki C2, getting setup with the client GUI, and we even came up with two ways to keep the app running persistently in the background 🪄 -- Cursor runs normally from the end users perspective! 🥷      
 
-[![I Backdoored Cursor AI](./docs/images/hammond.png)]([https://youtu.be/FYok3diZY78)
-
+[![I Backdoored Cursor AI](./docs/images/hammond.png)](https://www.youtube.com/watch?v=FYok3diZY78)
 
 Check out [Simon Exley & Clinton Elves](https://x.com/SimonExley25688) video on getting up and running with Loki C2 by backdooring VS Code! 🥷🔥🪄🧙‍♂️  
 
@@ -88,8 +87,8 @@ _All agent commands are written in native Node.JS and do not require additional 
 ```
 [04-04-2025 8:50AM MST] advsim$ help set
 Set the Node load paths for assembly node and scexec nodes
-	set scexec_path C:/Users/user/AppData/ExcludedApp/scexec.node
-	set assembly_path C:/Users/user/AppData/ExcludedApp/assembly.node
+  set scexec_path C:/Users/user/AppData/ExcludedApp/scexec.node
+  set assembly_path C:/Users/user/AppData/ExcludedApp/assembly.node
 [04-04-2025 8:51AM MST] advsim$ set scexec_path C:/Users/user/AppData/ExcludedApp/scexec.node
 SCEXEC Node Load Path Set to : C:/Users/user/AppData/ExcludedApp/scexec.node
 ```
@@ -111,6 +110,7 @@ First you need to identify a vulnerable Electron application which does not do A
 | ✅         | Cursor          | `cursor.exe`        | | [John Hammond](https://x.com/_JohnHammond) | 
 | ✅         | VS Code         | `code.exe`          | | |
 | ✅         | Github Desktop  | `GithubDesktop.exe` | | |
+| ✅         | [Postman](https://www.postman.com/downloads/)         | `Postman.exe`       | | [clod81](https://github.com/clod81) |
 | ✅         | [Obsidian](https://obsidian.md/download) | `Obsidian.exe`      | | [clod81](https://github.com/clod81) |
 | ✅         | Discord         | `Discord.exe`       | | [clod81](https://github.com/clod81) |
 | ❌         | 1Password       | `1Password.exe`     | | |
@@ -268,4 +268,3 @@ I do not recommend compiling the agent and using it for operations. Agent compil
 
 ## License
 This project is licensed under the Business Source License 1.1. Non-commercial use is permitted under the terms of the license. Commercial use requires the author's explicit permission. On April 3, 2030, this license will convert to Apache 2.0. See [LICENSE](./LICENSE) for full details.
-
