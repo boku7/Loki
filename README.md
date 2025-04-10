@@ -111,6 +111,7 @@ First you need to identify a vulnerable Electron application which does not do A
 | ✅         | Cursor          | `cursor.exe`        | | [John Hammond](https://x.com/_JohnHammond) | 
 | ✅         | VS Code         | `code.exe`          | | |
 | ✅         | Github Desktop  | `GithubDesktop.exe` | | |
+| ✅         | Obsidian        | `Obsidian.exe`      | | [clod81](https://github.com/clod81) |
 | ❌         | 1Password       | `1Password.exe`     | | |
 | ❌         | Signal          | `Signal.exe`        | | |
 | ❌         | Slack           | `slack.exe`         | | |
