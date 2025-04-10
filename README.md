@@ -13,14 +13,13 @@ Stage 1 C2 for backdooring Electron applications to bypass application controls.
 | [Shawn Jones](https://x.com/anthemtotheego) | Assembly Execution Code | 
 | [Simon Exley](https://www.linkedin.com/in/simon-exley-355816194/) | Video Creator |
 | [Clinton Elves](https://www.linkedin.com/in/clinton-elves-180ba0148/) | Video Creator |
-| [John Hammond](https://x.com/_JohnHammond) | Video Creator & Vulnerable App Discovery |
+| [John Hammond](https://x.com/_JohnHammond) | Video Creator |
 
 ## Videos
 Check out [John Hammonds](https://x.com/_JohnHammond) video on backdooring the Cursor AI application with Loki C2! 🎩       
-In the video he walks through discovering a new vulnerable Electron application, backdooring it with Loki C2, getting setup with the client GUI, and we even came up with two ways to keep the app running persistently in the background 🪄 -- Cursor runs normally from the end users perspective! 🥷      
+- In the video he walks through discovering a new vulnerable Electron application, backdooring it with Loki C2, getting setup with the client GUI, and we even came up with two ways to keep the app running persistently in the background 🪄 -- Cursor runs normally from the end users perspective! 🥷      
 
-[![I Backdoored Cursor AI](./docs/images/hammond.png)]([https://youtu.be/FYok3diZY78)
-
+[![I Backdoored Cursor AI](./docs/images/hammond.png)](https://www.youtube.com/watch?v=FYok3diZY78)
 
 Check out [Simon Exley & Clinton Elves](https://x.com/SimonExley25688) video on getting up and running with Loki C2 by backdooring VS Code! 🥷🔥🪄🧙‍♂️  
 
@@ -112,6 +111,7 @@ First you need to identify a vulnerable Electron application which does not do A
 | ✅         | VS Code         | `code.exe`          | | |
 | ✅         | Github Desktop  | `GithubDesktop.exe` | | |
 | ✅         | [Obsidian](https://obsidian.md/download) | `Obsidian.exe`      | | [clod81](https://github.com/clod81) |
+| ✅         | [Postman](https://www.postman.com/downloads/)         | `Postman.exe`       | | [clod81](https://github.com/clod81) |
 | ✅         | Discord         | `Discord.exe`       | | [clod81](https://github.com/clod81) |
 | ❌         | 1Password       | `1Password.exe`     | | |
 | ❌         | Signal          | `Signal.exe`        | | |
