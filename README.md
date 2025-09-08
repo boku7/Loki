@@ -134,6 +134,9 @@ First you need to identify a vulnerable Electron application which does not do A
 | ✅         | Git Kraken                                        | `gitkraken.exe` |   `11.1.1`     |      [robinx0](https://linkedin.com/in/robinary)                                      |
 | ✅         | Hyper                                        | `hyper.exe` |   `3.4.1`     |      [nahidha5an](https://www.linkedin.com/in/a-m-nahid-hasan-b2602335/)                        |
 | ✅         | LM Studio                                        | `lmstudio.exe` |   `0.3.14`     |      [nahidha5an](https://www.linkedin.com/in/a-m-nahid-hasan-b2602335/)                |
+| ✅         | Mailspring                                        | `mailspring.exe` |   `1.16.0`     |      [Iván Cabrera](www.linkedin.com/in/ivancabrerafresno
+
+) 
 | ❌         | 1Password                                             | `1Password.exe`     |                 |                                                                              |
 | ❌         | Signal                                                | `Signal.exe`        |                 |                                                                              |
 | ❌         | Slack                                                 | `slack.exe`         |                 |                                                                              |
