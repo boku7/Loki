@@ -189,15 +189,21 @@ async function listFiles_display(lsCommandOutput)
             };
             const modified = file.stats.mtimeMs ? new Date(file.stats.mtimeMs).toLocaleString('en-US', options).replace(',', '') : '';
 
-            row.innerHTML = `
-                <td class="${type.toLowerCase()}" 
-                    onclick="${type === 'Folder' ? `navigateTo('${file.name}')` : `openFile('${file.name}')`}">
-                    ${file.name}
-                </td>
-                <td>${size}</td>
-                <td>${type}</td>
-                <td>${modified}</td>
-            `;
+            const nameCell = document.createElement('td');
+            nameCell.className = type.toLowerCase();
+            nameCell.textContent = file.name;
+            nameCell.addEventListener('click', () => {
+                if (type === 'Folder') navigateTo(file.name);
+                else openFile(file.name);
+            });
+
+            const sizeCell = document.createElement('td');
+            sizeCell.textContent = String(size);
+            const typeCell = document.createElement('td');
+            typeCell.textContent = type;
+            const modifiedCell = document.createElement('td');
+            modifiedCell.textContent = modified;
+            row.append(nameCell, sizeCell, typeCell, modifiedCell);
             fileList.appendChild(row);
         });
     } catch (err) {
