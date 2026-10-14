@@ -95,7 +95,7 @@ async function createContainerWindow(thisagentid) {
     for (let i = 0; i < agents.length; i++) {
       if (agents[i].agentid === thisagentid)
       {
-          console.log(`agent with agentid ${this_agent.agentid} already exists in agents[${i}]`);
+          console.log(`agent with agentid ${thisagentid} already exists in agents[${i}]`);
           exists = true;
       }
     }
@@ -158,35 +158,27 @@ async function createContainerWindow(thisagentid) {
             await containerWin.webContents.send('window-closing'); 
         });
 
-        ipcMain.on('force-close', async (event,agentid) => {
-            console.log(`kernel.js : IPC force-close`);
-            console.log(`agentid   : ${agentid}`);
-            if(agents.length > 0){
-                for (let i = 0; i < agents.length; i++) {
-                  if (agents[i].agentid === agentid)
-                  {
-                      agents.pop(agents[i]);
-                      break;
-                  }
-                }
-            }
-            if (global.agentids.includes(agentid)) {
-                console.log(`${agentid} removed from the array.`);
-                global.agentids.pop(agentid);
-            } 
-            const agentWindow = global.agentWindowHandles[agentid];
-            if (agentWindow) {
-                agentWindow.destroy(); 
-                delete global.agentWindowHandles[agentid]; 
-                global.agentwindows--;
-            }
-            console.log(`agentids        : ${global.agentids}`);
-            console.log(`agents.length   : ${agents.length}`);
-            console.log(`agentids.length : ${global.agentids.length}`);
-            console.log(`agentwindows    : ${global.agentwindows}`);
-        });
     }
 }
+
+ipcMain.on('force-close', async (event, agentid) => {
+    console.log(`kernel.js : IPC force-close`);
+    console.log(`agentid   : ${agentid}`);
+    const agentIndex = agents.findIndex(agent => agent.agentid === agentid);
+    if (agentIndex !== -1) agents.splice(agentIndex, 1);
+
+    const agentIdIndex = global.agentids.indexOf(agentid);
+    if (agentIdIndex !== -1) {
+        global.agentids.splice(agentIdIndex, 1);
+    }
+
+    const agentWindow = global.agentWindowHandles[agentid];
+    if (agentWindow && !agentWindow.isDestroyed()) {
+        agentWindow.destroy();
+        delete global.agentWindowHandles[agentid];
+        global.agentwindows = Math.max(0, global.agentwindows - 1);
+    }
+});
 
 async function createExplorerWindow(thisagent) {
     const primaryDisplay = screen.getPrimaryDisplay();
@@ -1055,12 +1047,12 @@ ipcMain.on('show-row-context-menu', (event, agentsDataJSON) => {
                                 
                                 for (let i = 0; i < agents.length; i++) {
                                     if (agents[i].agentid === agentid) {
-                                        console.log(`Before pop : global.agentids[] : ${global.agentids}`);
-                                        agents.pop(agents[i]);
-                                        global.agentids.pop(agentid);
-                                        console.log(`After pop  : global.agentids[] : ${global.agentids}`);
+                                        agents.splice(i, 1);
+                                        break;
                                     }
                                 }
+                                const agentIdIndex = global.agentids.indexOf(agentid);
+                                if (agentIdIndex !== -1) global.agentids.splice(agentIdIndex, 1);
                                 global.agentwindows--;
                             } catch (windowError) {
                                 console.log(`Error cleaning up agent window: ${windowError} ${windowError.stack}`);

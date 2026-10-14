@@ -426,7 +426,7 @@ async function printToConsole(message, logToFileFlag = true) {
     try {
         const consoleOutput = document.getElementById('consoleOutput');
         const newLine = document.createElement('div');
-        newLine.innerHTML = message;
+        newLine.textContent = String(message);
         consoleOutput.appendChild(newLine);
         consoleOutput.scrollTop = consoleOutput.scrollHeight;
         let agent_log_name = `${pid_log}-${user_log}-${agentid_log}.log`;

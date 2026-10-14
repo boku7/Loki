@@ -101,7 +101,7 @@ async function DeleteStorageBlob(StorageContainer,StorageBlob)
 async function preloadContainers()
 {
     let meta_agent_container_info = [];
-    log(`azure.js | preloadContainers() | global.config: ${JSON.stringify(global.config)}`);
+    log(`azure.js | preloadContainers() | storageAccount=${global.config.storageAccount}, metaContainer=${global.config.metaContainer}`);
     try {
           let i = 1;
           let options = {
